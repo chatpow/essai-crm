@@ -1,0 +1,297 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Ducs</title>
+    <link rel="stylesheet" href="css/foundation.css" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <script src="js/vendor/modernizr.js"></script>
+    <script src="js/vendor/jquery.js"></script>
+  </head>
+  <body>
+
+  <!--PART1-->
+
+  <section class="part1">
+  <div class="row collapse">
+    <div class="small-12 medium-9 large-3 columns text-center nouvelle-action">
+      <p>NOUVELLE ACTION</p>
+    </div>
+    <div class="small-12 medium-9 large-6 columns text-center rechercher">
+      <input type="search" placeholder="Rechercher"></input>
+    </div>
+    <div id="nouveau-client" class="small-12 medium-3 large-3 columns text-center nouveau-client">
+      <p>NOUVEAU CLIENT</p>
+    </div>
+  </div>
+  </section>
+
+  <!--MODALE CLIENT-->
+
+  <div class="modal-client">
+    <div class="form-client">
+      <input type="text" class="input-nom" id="random-nom" placeholder="Nom" name="nomClient" id="input-nom"></input>
+      <input type="text" class="input-mail" id="random-mail" placeholder="Email" name="mailClient" id="input-mail"></input>
+    </div>
+    <div class="buttons-client">
+      <div class="fermer-client" id="fermer-client">
+        <p>Fermer</p>
+      </div>
+      <div class="ajouter-client" id="ajout-client">
+        <p>Ajouter</p>
+      </div>
+      <div class="random-client">
+        <p>Random</p>
+      </div>
+    </div>
+  </div>
+
+    <!--MODALE ACTIONS-->
+
+  <div class="modal-action">
+    <div class="form-action">
+      <input type="text" class="input-titre-action" placeholder="titre" name="nomAction" id="input-titre-action"></input>
+      <select name="client" class="liste-client" id="name-client">
+      </select>
+      <select name="Etat" class="list-client" id="etat-client">
+        <option value="En cours">En cours</option>
+        <option value="Fini">Fini</option>
+        <option value="Litige">Litige</option>
+        <option value="Abandonné">Abandonné</option>
+      </select>
+    </div>
+    <div class="buttons-action">
+      <div class="fermer-action">
+        <p>Fermer</p>
+      </div>
+      <div class="ajouter-action" id="ajout-action">
+        <p>Créer</p>
+      </div>
+    </div>
+  </div>
+
+  <!--TABLEAU-->
+
+  <section class="tableau">
+
+    <table class="tab-client" id="tab-g">
+        <!--titres-->
+        <thead id="titres">
+          <th id="col-action"><p>Action</p></th>
+          <th id="col-client"><p>Client</p></th>
+          <th id="col-etat"><p>Etat</p></th>
+          <th id="col-supr"><p>Supression/historique</p></th>
+        </thead>
+        <tbody id="meslignes">
+        </tbody>
+    </table>
+
+  </section>
+
+  <!--MODALE CONFIRMATION SUPPRIMER--> 
+
+  <div class="modale-supprimer" id="modale-supprimer">
+    <p>Es-tu sûr de vouloir supprimer cette ligne ?</p>
+    <a class="alert button" id="red" href="#">NON</a>
+    <a class="alert button" id="green" href="#">OUI</a>
+  </div>
+  
+  <!---------------------------------->
+
+    <script src="js/vendor/jquery.js"></script>
+    <script src="js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+
+    $(document).ready(function(){
+
+      $( "#nouveau-client" ).click(function() {
+        $(".modal-client").css("display", "block");
+      });
+
+      $( ".nouvelle-action" ).click(function() {
+        $(".modal-action").css("display", "block");
+      });
+
+      $( "#fermer-client" ).click(function() {
+        $(".modal-client").css("display", "none");
+      });
+
+      $( ".fermer-action" ).click(function() {
+        $(".modal-action").css("display", "none");
+      });
+
+      $( "#red" ).click(function() {
+        $(".modale-supprimer").css("display", "none");
+      });
+
+      /**Lors du chargement, reprendre les données nom et mail des personnes dans le local storage si il y en a et les affiché dans la liste dans action**/
+
+       if(JSON.parse(localStorage.getItem("actionsTab"))){
+
+        $.each(JSON.parse(localStorage.getItem("actionsTab")), function(index, element){
+
+        $('#meslignes').append( 
+          [
+              '<tr>',  
+                  '<td>'+element.titre+'</td>', 
+                  '<td>'+element.name+'</td>',  
+                  '<td>'+element.etat+'</td>', 
+                  '<td>'+
+                  '<div data-id="'+element.id+'" class="bouton-delete"><img src="img/supprimer_copie.png";"></div><img src="img/historique_copie.png" id="bouton-historique">'+
+                  '</td>',
+              '</tr>'  
+          ].join('') //un seul append pour limiter les manipulations directes du DOM
+        ); 
+
+      });
+    };
+
+      if(JSON.parse(localStorage.getItem("customer"))){
+          $.each(JSON.parse(localStorage.getItem("customer")), function(index, element){
+            
+          $("#name-client").append($("<option>", {value:index, text:element.name}));
+        });
+      };
+
+      /**ajouter un client**/
+
+      $("#ajout-client").click(function(){
+        ajoutClient();
+        $(".modal-client").css("display", "none");
+      });
+
+        function ajoutClient(){
+          var nomClient=($(".input-nom").val());
+          var mailClient=($(".input-mail").val());
+          var customer = {name:nomClient ,email:mailClient};
+          var tab;
+
+          // si le local storage contient un/ou des client(s)
+          if(localStorage.customer){
+            //on transforme le tableau au format json 
+            tab = JSON.parse(localStorage.getItem("customer"));
+          }
+            else{
+              //on créer un tableau
+              tab = new Array();
+            } 
+            //on l'ajoute au tableau
+            tab.push(customer);
+
+            //on l'ajoute au dans la liste
+
+            console.log(customer.name);
+            $(".liste-client").append($("<option>", {value:customer.name, text:customer.name}));
+
+            //on ajoute le tableau dans le local storage
+          localStorage.setItem("customer",JSON.stringify(tab));
+        }
+  
+      /**RANDOM**/
+
+      $(".random-client").click(function(){
+
+      $.ajax({
+        url: 'https://randomuser.me/api/',
+        dataType: 'json',
+        success: function(data){
+          console.log(data);
+          var randomNom = data.results[0].user.name.first;
+          var randomMail = data.results[0].user.email;
+          console.log(randomNom);
+          console.log(randomMail);
+          $("#random-nom").val(randomNom);
+          $("#random-mail").val(randomMail);  
+        }
+      });
+    });
+
+    /**Enregistrer les actions**/ 
+
+    $("#ajout-action").click(function(){
+      ajoutAction();
+      $(".modal-action").css("display", "none");
+    });
+
+    function ajoutAction(){
+      var titreAction=($("#input-titre-action").val());
+      var nameClient=($("#name-client").find("option:selected").text());
+      var etatAction=($("#etat-client").val());
+      var id = new Date().getTime();
+      var actionsTab = {titre:titreAction, name:nameClient ,etat:etatAction, id:id};
+      var tab2;
+
+      // si le local storage contient un/ou des action(s)
+      if(localStorage.actionsTab){
+        //on transforme le tableau au format json 
+        tab2 = JSON.parse(localStorage.getItem("actionsTab"));
+      }
+      else{
+        //on créer un tableau
+        tab2 = new Array();
+      } 
+      //on l'ajoute au tableau
+      tab2.push(actionsTab);
+
+      //on ajoute une ligne
+
+      $('#meslignes').append( 
+        [
+            '<tr>',  
+                '<td>'+actionsTab.titre+'</td>', 
+                '<td>'+actionsTab.name+'</td>',  
+                '<td>'+actionsTab.etat+'</td>', 
+                '<td>'+
+                '<div  data-id="'+actionsTab.id+'" class="bouton-delete"><img src="img/supprimer_copie.png";"></div><img src="img/historique_copie.png" id="bouton-historique">'+
+                '</td>',
+            '</tr>'  
+        ].join('') //un seul append pour limiter les manipulations directes du DOM
+      ); 
+
+      //on ajoute le tableau dans le local storage
+      localStorage.setItem("actionsTab",JSON.stringify(tab2));
+
+      }
+
+      /**SUPPRESSION LIGNE : Affichage modale**/
+
+      var dataId
+
+      $( ".bouton-delete" ).click(function(e) {
+
+        var dataId = $(this).data("id");
+        $("#modale-supprimer").css("display", "block");
+
+        $('#green').attr('data-id', dataId);
+        $(this).parents("tr").attr('id', dataId);
+
+        console.log(dataId);
+      });
+
+
+      /**SUPRESSION LIGNE : Supression ligne du tableau**/
+
+      $( "#green" ).click(function() {
+
+        $(".modale-supprimer").css("display", "none");  
+
+        var dataId = $(this).data("id");
+        //$("#123456")
+        $('tr#' + dataId).remove();
+        
+        json = JSON.parse(localStorage["actionsTab"]);
+        for (i=0;i<json.length;i++)
+          if(json[i].id == dataId) json.splice(i,1);
+        localStorage["action"] = JSON.stringify(json);
+        suppTab.closest('tr');
+       // localStorage.removeItem('actionsTab');
+        console.log(actionsTab);
+      });
+});
+
+
+    </script>
+  </body>
+</html>
